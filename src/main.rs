@@ -1,5 +1,5 @@
 use iced::pure::widget::{Button, Container};
-use iced::pure::{button, column, container, row, text, Element, Sandbox};
+use iced::pure::{button, column, container, row, text, Element, Sandbox, text_input};
 use iced::Settings;
 
 fn main() -> Result<(), iced::Error> {
@@ -9,19 +9,21 @@ fn main() -> Result<(), iced::Error> {
 #[derive(Clone)]
 struct Counter {
     todo_list: Vec<String>,
+    current_task: String
 }
 
 #[derive(Debug, Clone)]
 enum TodoMessage {
     AddTodo(String),
     DeleteTodo(usize),
+    CurrentTodo(String)
 }
 
 impl Sandbox for Counter {
     type Message = TodoMessage;
 
     fn new() -> Self {
-        Counter { todo_list: vec![] }
+        Counter { todo_list: vec![], current_task: String::new() }
     }
 
     fn title(&self) -> String {
@@ -33,7 +35,9 @@ impl Sandbox for Counter {
             TodoMessage::AddTodo(x) => self.todo_list.push(x),
             TodoMessage::DeleteTodo(i) => {
                 self.todo_list.swap_remove(i);
-                return;
+            }
+            TodoMessage::CurrentTodo(input) => {
+                self.current_task = input
             }
         }
     }
@@ -56,10 +60,12 @@ impl Sandbox for Counter {
                     )
                 });
 
-        let add_todo =
-            primary_button("Add Task").on_press(TodoMessage::AddTodo(String::from("New Task")));
+        let input = text_input("Write your task here", &self.current_task, TodoMessage::CurrentTodo);
 
-        let content = column().padding(20).push(tasks).push(add_todo);
+        let add_todo =
+            primary_button("Add Task").on_press(TodoMessage::AddTodo(self.current_task.clone()));
+
+        let content = column().padding(20).push(tasks).push(add_todo).push(input);
 
         container(content)
             .style(style::Container::Default)
