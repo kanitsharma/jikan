@@ -1,5 +1,5 @@
-use iced::pure::widget::{Button, Container};
-use iced::pure::{button, column, container, row, text, Element, Sandbox, text_input};
+use iced::pure::widget::Button;
+use iced::pure::{button, column, container, row, text, text_input, Element, Sandbox};
 use iced::Settings;
 
 fn main() -> Result<(), iced::Error> {
@@ -9,21 +9,24 @@ fn main() -> Result<(), iced::Error> {
 #[derive(Clone)]
 struct Counter {
     todo_list: Vec<String>,
-    current_task: String
+    current_task: String,
 }
 
 #[derive(Debug, Clone)]
 enum TodoMessage {
     AddTodo(String),
     DeleteTodo(usize),
-    CurrentTodo(String)
+    CurrentTodo(String),
 }
 
 impl Sandbox for Counter {
     type Message = TodoMessage;
 
     fn new() -> Self {
-        Counter { todo_list: vec![], current_task: String::new() }
+        Counter {
+            todo_list: vec![],
+            current_task: String::new(),
+        }
     }
 
     fn title(&self) -> String {
@@ -32,13 +35,14 @@ impl Sandbox for Counter {
 
     fn update(&mut self, message: TodoMessage) {
         match message {
-            TodoMessage::AddTodo(x) => self.todo_list.push(x),
+            TodoMessage::AddTodo(x) => {
+                self.todo_list.push(x);
+                self.current_task = String::new();
+            }
             TodoMessage::DeleteTodo(i) => {
                 self.todo_list.swap_remove(i);
             }
-            TodoMessage::CurrentTodo(input) => {
-                self.current_task = input
-            }
+            TodoMessage::CurrentTodo(input) => self.current_task = input,
         }
     }
 
@@ -60,17 +64,43 @@ impl Sandbox for Counter {
                     )
                 });
 
-        let input = text_input("Write your task here", &self.current_task, TodoMessage::CurrentTodo);
+        let input = text_input(
+            "Write your task here",
+            &self.current_task,
+            TodoMessage::CurrentTodo,
+        )
+        .style(style::Input::Default)
+        .padding(10)
+        .on_submit(TodoMessage::AddTodo(self.current_task.clone()));
 
         let add_todo =
             primary_button("Add Task").on_press(TodoMessage::AddTodo(self.current_task.clone()));
 
-        let content = column().padding(20).push(tasks).push(add_todo).push(input);
+        let content = column()
+            .padding(20)
+            .align_items(iced::Alignment::Start)
+            .push(container(tasks).padding(30))
+            .push(
+                container(
+                    row()
+                        .push(
+                            container(input)
+                                .width(iced::Length::Fill)
+                                .center_y()
+                                .align_y(iced::alignment::Vertical::Top),
+                        )
+                        .push(add_todo)
+                        .align_items(iced::Alignment::Start)
+                        .spacing(10),
+                )
+                .height(iced::Length::Fill)
+                .align_y(iced::alignment::Vertical::Bottom),
+            );
 
         container(content)
             .style(style::Container::Default)
             .center_x()
-            .center_y()
+            .align_y(iced::alignment::Vertical::Bottom)
             .width(iced::Length::Fill)
             .height(iced::Length::Fill)
             .into()
@@ -93,8 +123,8 @@ fn secondaryy_button<'a, Message: 'a>(label: &str) -> Button<'a, Message> {
 }
 
 mod style {
-    use iced::{button, container};
-    use iced::{Background, Color, Vector};
+    use iced::{button, container, text_input};
+    use iced::{Background, Color};
 
     pub enum Button {
         Primary,
@@ -102,6 +132,10 @@ mod style {
     }
 
     pub enum Container {
+        Default,
+    }
+
+    pub enum Input {
         Default,
     }
 
@@ -113,7 +147,6 @@ mod style {
                     Button::Secondary => Color::from_rgb(0.5, 0.5, 0.5),
                 })),
                 border_radius: 6.0,
-                shadow_offset: Vector::new(1.0, 1.0),
                 text_color: Color::from_rgb8(0xEE, 0xEE, 0xEE),
                 ..button::Style::default()
             }
@@ -122,7 +155,6 @@ mod style {
         fn hovered(&self) -> button::Style {
             button::Style {
                 text_color: Color::WHITE,
-                shadow_offset: Vector::new(1.0, 2.0),
                 ..self.active()
             }
         }
@@ -135,6 +167,50 @@ mod style {
                 text_color: Color::WHITE.into(),
                 ..container::Style::default()
             }
+        }
+    }
+
+    impl text_input::StyleSheet for Input {
+        fn active(&self) -> iced::text_input::Style {
+            text_input::Style {
+                background: Background::Color(Color::TRANSPARENT),
+                border_width: 0.5,
+                border_color: Color::from_rgba8(0xEE, 0xEE, 0xEE, 0.5),
+                border_radius: 6.0,
+                ..text_input::Style::default()
+            }
+        }
+
+        fn focused(&self) -> iced::text_input::Style {
+            text_input::Style {
+                background: Background::Color(Color::TRANSPARENT),
+                border_width: 0.5,
+                border_color: Color::from_rgba8(0xEE, 0xEE, 0xEE, 0.5),
+                border_radius: 6.0,
+                ..text_input::Style::default()
+            }
+        }
+
+        fn hovered(&self) -> iced::text_input::Style {
+            text_input::Style {
+                background: Background::Color(Color::TRANSPARENT),
+                border_width: 0.5,
+                border_color: Color::from_rgba8(0xEE, 0xEE, 0xEE, 0.5),
+                border_radius: 6.0,
+                ..text_input::Style::default()
+            }
+        }
+
+        fn selection_color(&self) -> Color {
+            Color::from_rgb8(0xEE, 0xEE, 0xEE)
+        }
+
+        fn placeholder_color(&self) -> Color {
+            Color::from_rgb8(0xEE, 0xEE, 0xEE)
+        }
+
+        fn value_color(&self) -> Color {
+            Color::WHITE
         }
     }
 }
