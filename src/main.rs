@@ -1,5 +1,7 @@
 use iced::pure::widget::Button;
-use iced::pure::{button, column, container, row, text, text_input, Element, Sandbox};
+use iced::pure::{
+    button, column, container, progress_bar, row, text, text_input, Element, Sandbox,
+};
 use iced::Settings;
 
 fn main() -> Result<(), iced::Error> {
@@ -8,15 +10,22 @@ fn main() -> Result<(), iced::Error> {
 
 #[derive(Clone)]
 struct Counter {
-    todo_list: Vec<String>,
-    current_task: String,
+    todo_list: Vec<Todo>,
+    current_task: Todo,
+}
+
+#[derive(Debug, Clone, Default)]
+struct Todo {
+    message: String,
+    time: f32,
 }
 
 #[derive(Debug, Clone)]
 enum TodoMessage {
-    AddTodo(String),
+    AddTodo(Todo),
     DeleteTodo(usize),
-    CurrentTodo(String),
+    CurrentTodoMessage(String),
+    CurrentTodoTimer(f32),
 }
 
 impl Sandbox for Counter {
@@ -25,7 +34,7 @@ impl Sandbox for Counter {
     fn new() -> Self {
         Counter {
             todo_list: vec![],
-            current_task: String::new(),
+            current_task: Todo::default(),
         }
     }
 
@@ -37,12 +46,13 @@ impl Sandbox for Counter {
         match message {
             TodoMessage::AddTodo(x) => {
                 self.todo_list.push(x);
-                self.current_task = String::new();
+                self.current_task = Todo::default();
             }
             TodoMessage::DeleteTodo(i) => {
                 self.todo_list.swap_remove(i);
             }
-            TodoMessage::CurrentTodo(input) => self.current_task = input,
+            TodoMessage::CurrentTodoMessage(input) => self.current_task.message = input,
+            TodoMessage::CurrentTodoTimer(input) => self.current_task.time = input,
         }
     }
 
@@ -51,10 +61,10 @@ impl Sandbox for Counter {
             self.todo_list
                 .iter()
                 .enumerate()
-                .fold(column().spacing(20), |col, (i, task)| {
-                    let task = text(task);
+                .fold(column().spacing(20), |col, (i, todo)| {
+                    let task = text(todo.message.clone());
                     let delete_todo =
-                        secondaryy_button("Delete").on_press(TodoMessage::DeleteTodo(i));
+                        secondary_button("Delete").on_press(TodoMessage::DeleteTodo(i));
                     col.push(
                         row()
                             .align_items(iced::Alignment::Center)
@@ -62,16 +72,20 @@ impl Sandbox for Counter {
                             .push(task)
                             .push(delete_todo),
                     )
+                    .push(progress_bar(0.0..=60.0, todo.time.into()))
                 });
 
         let input = text_input(
             "Write your task here",
-            &self.current_task,
-            TodoMessage::CurrentTodo,
+            &self.current_task.message,
+            TodoMessage::CurrentTodoMessage,
         )
         .style(style::Input::Default)
         .padding(10)
         .on_submit(TodoMessage::AddTodo(self.current_task.clone()));
+
+        let set_timer = primary_button(&format!("{} hr", self.current_task.time.to_string()))
+            .on_press(TodoMessage::CurrentTodoTimer(self.current_task.time + 1.00));
 
         let add_todo =
             primary_button("Add Task").on_press(TodoMessage::AddTodo(self.current_task.clone()));
@@ -89,6 +103,7 @@ impl Sandbox for Counter {
                                 .center_y()
                                 .align_y(iced::alignment::Vertical::Top),
                         )
+                        .push(set_timer)
                         .push(add_todo)
                         .align_items(iced::Alignment::Start)
                         .spacing(10),
@@ -118,7 +133,7 @@ fn primary_button<'a, Message: 'a>(label: &str) -> Button<'a, Message> {
     .style(style::Button::Primary)
 }
 
-fn secondaryy_button<'a, Message: 'a>(label: &str) -> Button<'a, Message> {
+fn secondary_button<'a, Message: 'a>(label: &str) -> Button<'a, Message> {
     button(row().padding(5).push(text(label).size(14))).style(style::Button::Secondary)
 }
 
