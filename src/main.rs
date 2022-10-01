@@ -12,11 +12,10 @@ fn main() -> Result<(), iced::Error> {
 struct App {
     todo_list: Vec<String>,
     current_task: String,
-    main_page: component::MainPage
 }
 
 #[derive(Debug, Clone)]
-enum TodoMessage {
+pub enum TodoMessage {
     AddTodo(String),
     DeleteTodo(usize),
     CurrentTodo(String),
@@ -76,7 +75,7 @@ impl Sandbox for App {
         let add_todo =
             primary_button("Add Task").on_press(TodoMessage::AddTodo(self.current_task.clone()));
 
-        let component = container(self.main_page.view());
+        let component = container(component::MainPage::new().view());
 
         let content = column()
             .padding(20)

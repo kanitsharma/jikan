@@ -13,7 +13,7 @@ impl MainPage {
         MainPage
     }
 
-    pub fn view(&self) -> Element<TodoMessage> {
+    pub fn view<'a>(&self) -> Element<'a, TodoMessage> {
         Container::new(Text::new("Hello from Page 2"))
             .width(Length::Fill)
             .height(Length::Fill)
