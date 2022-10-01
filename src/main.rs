@@ -1,15 +1,18 @@
 use iced::pure::widget::Button;
 use iced::pure::{button, column, container, row, text, text_input, Element, Sandbox};
 use iced::Settings;
+// mod numeric_input;
+mod component;
 
 fn main() -> Result<(), iced::Error> {
-    Counter::run(Settings::default())
+    App::run(Settings::default())
 }
 
-#[derive(Clone)]
-struct Counter {
+#[derive(Default)]
+struct App {
     todo_list: Vec<String>,
     current_task: String,
+    main_page: component::MainPage
 }
 
 #[derive(Debug, Clone)]
@@ -19,14 +22,11 @@ enum TodoMessage {
     CurrentTodo(String),
 }
 
-impl Sandbox for Counter {
+impl Sandbox for App {
     type Message = TodoMessage;
 
     fn new() -> Self {
-        Counter {
-            todo_list: vec![],
-            current_task: String::new(),
-        }
+        Self::default()
     }
 
     fn title(&self) -> String {
@@ -76,10 +76,14 @@ impl Sandbox for Counter {
         let add_todo =
             primary_button("Add Task").on_press(TodoMessage::AddTodo(self.current_task.clone()));
 
+        let component = container(self.main_page.view());
+
         let content = column()
             .padding(20)
             .align_items(iced::Alignment::Start)
             .push(container(tasks).padding(30))
+            // .push(numeric_input::numeric_input(self.value, TodoMessage::NumericInputChanged))
+            .push(component)
             .push(
                 container(
                     row()
