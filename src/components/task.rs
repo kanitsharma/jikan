@@ -6,7 +6,7 @@ use iced::{
 };
 
 use crate::TodoMessage;
-#[path = "components/buttons.rs"] mod buttons;
+mod buttons;
 
 #[derive(Default, Clone)]
 pub struct Task {

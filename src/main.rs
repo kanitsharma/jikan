@@ -1,8 +1,8 @@
 use iced::pure::{column, container, row, text_input, Element, Sandbox};
 use iced::Settings;
 // mod numeric_input;
-mod task;
 mod styles;
+#[path = "components/task.rs"] mod task;
 #[path = "components/buttons.rs"] mod buttons;
 
 fn main() -> Result<(), iced::Error> {
