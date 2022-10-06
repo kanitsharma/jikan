@@ -84,7 +84,7 @@ impl Sandbox for Counter {
         .padding(10)
         .on_submit(TodoMessage::AddTodo(self.current_task.clone()));
 
-        let set_timer = primary_button(&format!("{} hr", self.current_task.time.to_string()))
+        let set_timer = primary_button(format!("{} hr", self.current_task.time))
             .on_press(TodoMessage::CurrentTodoTimer(self.current_task.time + 1.00));
 
         let add_todo =
@@ -186,7 +186,16 @@ mod style {
     }
 
     impl text_input::StyleSheet for Input {
-        fn active(&self) -> iced::text_input::Style {
+        fn active(&self) -> text_input::Style {
+            text_input::Style {
+                background: Background::Color(Color::TRANSPARENT),
+                border_width: 0.5,
+                border_color: Color::from_rgba8(0xEE, 0xEE, 0xEE, 0.5),
+                border_radius: 6.0,
+            }
+        }
+
+        fn focused(&self) -> text_input::Style {
             text_input::Style {
                 background: Background::Color(Color::TRANSPARENT),
                 border_width: 0.5,
@@ -196,17 +205,7 @@ mod style {
             }
         }
 
-        fn focused(&self) -> iced::text_input::Style {
-            text_input::Style {
-                background: Background::Color(Color::TRANSPARENT),
-                border_width: 0.5,
-                border_color: Color::from_rgba8(0xEE, 0xEE, 0xEE, 0.5),
-                border_radius: 6.0,
-                ..text_input::Style::default()
-            }
-        }
-
-        fn hovered(&self) -> iced::text_input::Style {
+        fn hovered(&self) -> text_input::Style {
             text_input::Style {
                 background: Background::Color(Color::TRANSPARENT),
                 border_width: 0.5,
