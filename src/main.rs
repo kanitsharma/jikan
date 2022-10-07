@@ -66,16 +66,12 @@ impl Sandbox for App {
             .enumerate()
             .fold(column().spacing(20), |col, (i, t)| {
                 let task = task::Task::new(t.clone().message, i).view();
-                col.push(
-                    row()
-                        .push(task)
-                        .push(progress_bar(0.0..=60.0, t.time.into())),
-                )
+                col.push(row().push(task).push(progress_bar(0.0..=60.0, t.time)))
             });
 
         let input = text_input(
             "Write your task here",
-            self.current_task.message.into(),
+            &*self.current_task.message,
             TodoMessage::CurrentTodoMessage,
         )
         .style(styles::Input::Default)
