@@ -1,32 +1,44 @@
-use iced::pure::{column, container, row, text_input, Element, Sandbox};
+use iced::pure::{column, container, progress_bar, row, text_input, Element, Sandbox};
 use iced::Settings;
 // mod numeric_input;
+#[path = "components/buttons.rs"]
+mod buttons;
 mod styles;
-#[path = "components/task.rs"] mod task;
-#[path = "components/buttons.rs"] mod buttons;
+#[path = "components/task.rs"]
+mod task;
 
 fn main() -> Result<(), iced::Error> {
     App::run(Settings::default())
 }
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 struct App {
-    todo_list: Vec<String>,
-    current_task: String,
+    todo_list: Vec<Todo>,
+    current_task: Todo,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct Todo {
+    message: String,
+    time: f32,
 }
 
 #[derive(Debug, Clone)]
 pub enum TodoMessage {
-    AddTodo(String),
+    AddTodo(Todo),
     DeleteTodo(usize),
-    CurrentTodo(String),
+    CurrentTodoMessage(String),
+    CurrentTodoTimer(f32),
 }
 
 impl Sandbox for App {
     type Message = TodoMessage;
 
     fn new() -> Self {
-        Self::default()
+        App {
+            todo_list: vec![],
+            current_task: Todo::default(),
+        }
     }
 
     fn title(&self) -> String {
@@ -37,12 +49,13 @@ impl Sandbox for App {
         match message {
             TodoMessage::AddTodo(x) => {
                 self.todo_list.push(x);
-                self.current_task = String::new();
+                self.current_task = Todo::default();
             }
             TodoMessage::DeleteTodo(i) => {
                 self.todo_list.swap_remove(i);
             }
-            TodoMessage::CurrentTodo(input) => self.current_task = input,
+            TodoMessage::CurrentTodoMessage(input) => self.current_task.message = input,
+            TodoMessage::CurrentTodoTimer(input) => self.current_task.time = input,
         }
     }
 
@@ -52,21 +65,30 @@ impl Sandbox for App {
             .iter()
             .enumerate()
             .fold(column().spacing(20), |col, (i, t)| {
-                let task = task::Task::new(String::from(t), i).view();
-                col.push(row().push(task))
+                let task = task::Task::new(t.clone().message, i).view();
+                col.push(
+                    row()
+                        .push(task)
+                        .push(progress_bar(0.0..=60.0, t.time.into())),
+                )
             });
 
         let input = text_input(
             "Write your task here",
-            &self.current_task,
-            TodoMessage::CurrentTodo,
+            self.current_task.message.into(),
+            TodoMessage::CurrentTodoMessage,
         )
         .style(styles::Input::Default)
         .padding(10)
         .on_submit(TodoMessage::AddTodo(self.current_task.clone()));
 
-        let add_todo =
-            buttons::primary_button("Add Task").on_press(TodoMessage::AddTodo(self.current_task.clone()));
+        let set_timer = buttons::primary_button(&format!("{} hr", self.current_task.time))
+            .on_press(TodoMessage::CurrentTodoTimer(
+                &self.current_task.time + 1.00,
+            ));
+
+        let add_todo = buttons::primary_button("Add Task")
+            .on_press(TodoMessage::AddTodo(self.current_task.clone()));
 
         let content = column()
             .padding(20)
@@ -81,6 +103,7 @@ impl Sandbox for App {
                                 .center_y()
                                 .align_y(iced::alignment::Vertical::Top),
                         )
+                        .push(set_timer)
                         .push(add_todo)
                         .align_items(iced::Alignment::Start)
                         .spacing(10),
@@ -98,4 +121,3 @@ impl Sandbox for App {
             .into()
     }
 }
-
