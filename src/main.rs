@@ -18,7 +18,7 @@ struct App {
 }
 
 #[derive(Debug, Clone, Default)]
-struct Todo {
+pub struct Todo {
     message: String,
     time: f32,
 }
@@ -65,24 +65,24 @@ impl Sandbox for App {
             .iter()
             .enumerate()
             .fold(column().spacing(20), |col, (i, t)| {
-                let task = task::Task::new(String::from(t), i).view();
+                let task = task::Task::new(t.clone().message, i).view();
                 col.push(
                     row()
                         .push(task)
-                        .push(progress_bar(0.0..=60.0, self.time.into())),
+                        .push(progress_bar(0.0..=60.0, t.time.into())),
                 )
             });
 
         let input = text_input(
             "Write your task here",
-            &self.current_task.message,
+            self.current_task.message.into(),
             TodoMessage::CurrentTodoMessage,
         )
         .style(styles::Input::Default)
         .padding(10)
         .on_submit(TodoMessage::AddTodo(self.current_task.clone()));
 
-        let set_timer = buttons::primary_button(&format!("{} hr", self.current_task.time.into()))
+        let set_timer = buttons::primary_button(&format!("{} hr", self.current_task.time))
             .on_press(TodoMessage::CurrentTodoTimer(
                 &self.current_task.time + 1.00,
             ));
